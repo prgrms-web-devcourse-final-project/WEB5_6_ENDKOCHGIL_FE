@@ -1,4 +1,4 @@
-type Variant = 'care' | 'habit' | 'study' | 'activity' | 'etc';
+export type Variant = 'care' | 'habit' | 'study' | 'exercise' | 'etc';
 
 interface TagProps {
   children: React.ReactNode;
@@ -16,7 +16,7 @@ const bgStyles: Record<Variant, string> = {
   care: 'bg-tag-care',
   habit: 'bg-tag-habit',
   study: 'bg-tag-study',
-  activity: 'bg-tag-activity',
+  exercise: 'bg-tag-activity',
   etc: 'bg-tag-etc'
 };
 
