@@ -4,7 +4,6 @@ import Button from '@/components/ui/Button';
 import Tag from '@/components/ui/Tag';
 import ConfirmModal from '@/components/modal/ConfirmModal';
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { mapTag, variantToKorean } from '@/lib/tag';
 import type { PartyApiItem } from '@/lib/api/parties/parties';
 import { joinPartyClient } from '@/lib/api/parties/parties';
@@ -47,7 +46,8 @@ export default function PartyCard({
   const startText = formatKoreanDate(startAt);
   const weeks = calcWeeks(startAt, endAt);
   const [openConfirm, setOpenConfirm] = useState(false);
-  const router = useRouter();
+  const [openResult, setOpenResult] = useState(false);
+  const [openError, setOpenError] = useState(false); // 실패 모달 상태 추가
 
   return (
     <article className="rounded-2xl bg-bg-card-default p-4 shadow-md border border-transparent focus:outline-none">
@@ -80,41 +80,55 @@ export default function PartyCard({
             <Button
               variant="basic"
               size="md"
-              onClick={async () => {
-                try {
-                  if (id) {
-                    await joinPartyClient(id); // 참여 API 호출
-                    router.push(`/partydetail/${id}`);
-                  }
-                } catch (e) {
-                  console.error('참여 실패:', e);
-                  alert('참여에 실패했습니다.');
-                }
-              }}
+              onClick={() => setOpenConfirm(true)}
             >
-              참여하기
+              참가신청
             </Button>
           </div>
         </div>
       </div>
 
-      {/* 참여 확인 모달 */}
+      {/* 참가 확인 모달 */}
       <ConfirmModal
         open={openConfirm}
         lines={[`${title}에 참여하시겠습니까?`]}
         onCancel={() => setOpenConfirm(false)}
-        onConfirm={() => {
+        onConfirm={async () => {
           setOpenConfirm(false);
-          // id가 있으면 /parties/:id, 없으면 title 기반 슬러그로 이동
           if (id) {
-            router.push(`/partydetail/${id}`);
-          } else {
-            router.push(`/partydetail/${encodeURIComponent(title)}`);
+            try {
+              await joinPartyClient(id); // 참가신청 API 호출
+              setOpenResult(true); // 신청 완료 안내 모달 오픈
+            } catch {
+              setOpenError(true); // 실패 안내 모달 오픈
+            }
           }
         }}
-        confirmText="참여하기"
+        confirmText="참가신청"
         cancelText="취소"
         variant="happy"
+      />
+
+      {/* 신청 완료 안내 모달 */}
+      <ConfirmModal
+        open={openResult}
+        lines={['참가 신청이 완료되었습니다!', '파티장의 수락을 기다려주세요.']}
+        onCancel={() => setOpenResult(false)}
+        onConfirm={() => setOpenResult(false)}
+        confirmText="확인"
+        cancelText=""
+        variant="happy"
+      />
+
+      {/* 신청 실패 안내 모달 */}
+      <ConfirmModal
+        open={openError}
+        lines={['참가 신청에 실패했습니다.', '잠시 후 다시 시도해 주세요.']}
+        onCancel={() => setOpenError(false)}
+        onConfirm={() => setOpenError(false)}
+        confirmText="확인"
+        cancelText=""
+        variant="sad"
       />
     </article>
   );

@@ -36,7 +36,7 @@ export async function getProfile(accessToken: string | undefined) {
   );
 
   console.log("프로필 조회 res", res);
-  
+
   if (!res.ok) throw new Error('프로필 조회 실패');
   return res.json();
 }
@@ -63,27 +63,39 @@ export async function updateProfile(payload: {
 // 회원 정보 확인
 export async function getMyInfo(accessToken?: string | undefined) {
   try {
-    const res = await fetch(
-      `${BASE_URL}/api/v1/members/me`,
-      {
+    const url = `${BASE_URL}/api/v1/members/me`;
+    let res: Response;
+
+    if (typeof window === 'undefined') {
+      // 서버(SSR) 환경: accessToken을 전달받으면 Cookie 헤더로 전송
+      const headers: Record<string, string> = { Accept: 'application/json' };
+      if (accessToken) {
+        headers.Cookie = `accessToken=${accessToken}`;
+      }
+      res = await fetch(url, {
+        method: 'GET',
+        headers,
+        cache: 'no-store'
+      });
+    } else {
+      // 클라이언트(브라우저): Cookie 헤더 직접 설정 불가 -> credentials 사용
+      res = await fetch(url, {
         method: 'GET',
         credentials: 'include',
-        headers: {
-          Cookie: `accessToken=${accessToken}`,
-        },
-        cache: 'no-store',
-      }
-    );
+        headers: { Accept: 'application/json' },
+        cache: 'no-store'
+      });
+    }
 
     if (!res.ok) {
       console.warn('내 정보 조회 실패:', res.status);
       return null;
     }
 
-    const data = await res.json();
-    return data.content;
+    const data = await res.json().catch(() => null);
+    return data?.content ?? null;
   } catch (error) {
-    console.error('내 정보 조회 중 에러:', error)
+    console.error('내 정보 조회 중 에러:', error);
     return null;
   }
 }

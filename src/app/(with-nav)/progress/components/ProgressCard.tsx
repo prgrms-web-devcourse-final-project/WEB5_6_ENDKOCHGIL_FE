@@ -117,11 +117,9 @@ export default function ProgressCard({
       </div>
 
       <div className="mt-3">
-        {subtitle && (
           <div className="text-md text-test-sub mt-1">
             오늘의 미션 : {subtitle}
           </div>
-        )}
       </div>
     </article>
   );

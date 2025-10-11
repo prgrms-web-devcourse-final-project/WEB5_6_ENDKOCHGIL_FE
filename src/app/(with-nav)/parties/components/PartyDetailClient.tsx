@@ -7,7 +7,7 @@ import { fetchPartyDetailClient } from '@/lib/api/parties/parties';
 import { getMyInfo } from '@/lib/api/member';
 
 type Member = {
-  id: number;
+  id?: number; // 변경: id를 optional로 허용
   name: string;
   subtitle?: string;
   crowned?: boolean;
@@ -44,15 +44,18 @@ export default function PartyDetailClient({ partyId }: { partyId: string }) {
         const leaderId = detail.leaderId;
         const rawMembers = detail.members ?? [];
 
-        const mappedMembers = rawMembers.map((m) => ({
-          id: m.id,
-          name: m.name ?? `회원 ${m.id}`,
-          subtitle: m.email ?? undefined,
-          crowned: leaderId === m.id,
-        }));
+        const mappedMembers: Member[] = rawMembers
+          .map((m) => ({
+            id: typeof m.id === 'number' ? m.id : undefined,
+            name: m.name ?? `회원 ${m.id ?? ''}`,
+            subtitle: m.email ?? undefined,
+            crowned: leaderId === m.id,
+          }))
+          // id가 반드시 필요하면 필터 (옵션) — 현재는 optional 허용하므로 필터 안함
+          ;
 
         setMembers(mappedMembers);
-      } catch (e) {
+      } catch {
         setError('파티 상세 정보를 불러오는 데 실패했습니다.');
       } finally {
         if (mounted) setLoading(false);
@@ -101,12 +104,13 @@ export default function PartyDetailClient({ partyId }: { partyId: string }) {
       <div className="grid grid-cols-3 gap-3 mb-4">
         {members.map((m) => (
           <div
-            key={m.id}
+            key={m.id ?? m.name} // id 없을 때는 name으로 대체
             className="relative rounded-lg bg-basic-white p-3 flex flex-col items-center text-center shadow-sm"
           >
             <div className="w-20 h-20 bg-gray-100 rounded-md flex items-center justify-center mb-2">
               <span className="text-base font-semibold text-gray-08">
-                {m.name.charAt(0)}<br />(이미지)
+                {(m.name && m.name.length > 0 ? m.name.charAt(0) : '?')}
+                <br />(이미지)
               </span>
             </div>
             <div className="text-xs text-gray-05">{m.subtitle}</div>

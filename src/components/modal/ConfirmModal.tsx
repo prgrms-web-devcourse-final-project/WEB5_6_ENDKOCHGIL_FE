@@ -29,6 +29,9 @@ function ConfirmModal({
     imageSrc ||
     (variant === 'happy' ? '/images/happy-nuts.png' : '/images/sad-nuts.png');
 
+  // 버튼 개수에 따라 그리드 컬럼 조정
+  const buttonColClass = cancelText ? 'grid-cols-2' : 'grid-cols-1';
+
   return (
     <BaseModal isOpen={open} onClose={onCancel}>
       {/* 이미지 */}
@@ -51,16 +54,18 @@ function ConfirmModal({
       )}
 
       {/* 버튼 영역 */}
-      <div className="mt-3 grid grid-cols-2 gap-5">
-        <Button
-          type="button"
-          onClick={onCancel}
-          variant="cancel"
-          size="md"
-          fullWidth
-        >
-          {cancelText}
-        </Button>
+      <div className={`mt-3 grid ${buttonColClass} gap-5`}>
+        {cancelText && (
+          <Button
+            type="button"
+            onClick={onCancel}
+            variant="cancel"
+            size="md"
+            fullWidth
+          >
+            {cancelText}
+          </Button>
+        )}
 
         <Button
           type="button"
